@@ -7,7 +7,8 @@ interface AuthRequest extends Request {
   user?: string | jwt.JwtPayload;
 }
 
-export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction, whiteList: string[]) => {
+  console.log(whiteList)
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Mengambil token dari "Bearer <token>"
 

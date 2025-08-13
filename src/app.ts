@@ -12,6 +12,6 @@ setupMiddleware(app)
 // app.get('/shopee-callback', callbackController);
 app.use('/', dashboardRoute);
 app.use('/api/v1/auth', authRoute);
-app.use('/api/v1', verifyToken, apiRoute);
+app.use('/api/v1', (req, res, next) => verifyToken(req, res, next, ["/anjay"]), apiRoute);
 
 export default app
