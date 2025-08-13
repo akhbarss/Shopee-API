@@ -14,20 +14,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Shop {
-  id          Int      @id @default(autoincrement())
-  shopId      Int      @unique // ID toko dari Shopee
-  shopName    String
-  shopLogo    String?  // Tanda tanya (?) berarti kolom ini opsional
-  description String?
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relasi ke model Token
-  token       Token?
-}
-
 // Model untuk menyimpan token Shopee
 // Ini akan menjadi tabel bernama 'Token' di database Anda
 model Token {
@@ -36,9 +22,33 @@ model Token {
   accessToken  String   @db.Text
   refreshToken String   @db.Text
   expiresAt    BigInt
-
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  shop    Shop @relation(fields: [shopId], references: [shopId])
+  shop Shop @relation(fields: [shopId], references: [shopId])
+}
+
+model Shop {
+  id          Int      @id @default(autoincrement())
+  shopId      Int      @unique // ID toko dari Shopee
+  shopName    String
+  shopLogo    String? // Tanda tanya (?) berarti kolom ini opsional
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  token  Token?
+  userId Int?
+  user   User?  @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  shops Shop[]
 }

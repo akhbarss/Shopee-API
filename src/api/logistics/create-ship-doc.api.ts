@@ -1,10 +1,12 @@
 import axios, { AxiosResponse } from 'axios';
 import { BaseResponse } from '../../types/data.type';
+import { ShippingDocumentTypeEnum } from '../../schema/zod';
 
 type ResCreateShipingDocument = {
     "response": {
         "result_list": {
             "order_sn": string
+            "package_number": string
             "fail_error": string
             "fail_message": string
         }[]
@@ -17,8 +19,9 @@ type PayloadCreateShipingDocument = {
         order_list: {
             order_sn: string
             package_number?: string
+            tracking_number?: string
+            shipping_document_type: ShippingDocumentTypeEnum
         }[],
-        shipping_document_type: string
     }
 }
 

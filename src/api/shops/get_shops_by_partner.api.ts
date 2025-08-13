@@ -25,6 +25,6 @@ export const fetchGetAllShops = async (
 
     const response = await axios.get<ResGetShopsByPartner>(`${SHOPEE_BASE_URL}${urlPath}`, { params: apiParams });
     console.log("################")
-    console.log({ data: response.data })
+    console.log({ data: response.data , authed_shop_list: response.data.authed_shop_list})
     return response.data;
 };

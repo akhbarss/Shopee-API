@@ -21,7 +21,10 @@ export const setupMiddleware = (app: express.Application): void => {
   // 3. Middleware logger sederhana untuk setiap request
   app.use((req, res, next) => {
     // Memberikan log untuk setiap request yang masuk untuk memudahkan debugging
-    console.log(`[${new Date().toLocaleTimeString()}] ${req.method} url:${req.url} baseUrl:${req.baseUrl} originalUrl:${req.originalUrl} - IP: ${req.ip}`);
+    console.log(`
+      
+      
+     ✅ [${new Date().toLocaleTimeString()}] ${req.method} url:${req.url} baseUrl:${req.baseUrl} originalUrl:${req.originalUrl} - IP: ${req.ip}`);
     next();
   });
 
