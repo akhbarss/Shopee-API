@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const zodShopIdSchema = z
+export const zodQueryNumber = z
     .preprocess((val) => {
         if (typeof val === "string") {
             return Number.parseInt(val);

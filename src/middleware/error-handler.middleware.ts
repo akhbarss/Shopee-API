@@ -12,7 +12,7 @@ export const errorHandler = (
     res: Response,
     next: NextFunction
 ) => {
-    console.log('--- Error Handler Middleware ---');
+    console.log('--- ❌Error Handler Middleware❌ ---');
 
     if(error instanceof ZodError) {
         const flattenErr = z.flattenError(error)

@@ -1,0 +1,48 @@
+
+# Kredensial dari Shopee Developer Portal (untuk Test Environment)
+# SHOPEE_PARTNER_ID=1281087
+# SHOPEE_PARTNER_KEY=525973594f5950515455674b4f48437a4573697872627a56506741536f647067
+# SHOPEE_SHOP_ID=1044365033
+
+# Base URL untuk Shopee Open Platform (Test Environment)
+# SHOPEE_BASE_URL=https://partner.test-stable.shopeemobile.com
+
+# URL Callback aplikasi Anda yang terdaftar di Shopee
+# Pastikan ini cocok dengan 'Test Redirect URL Domain' Anda di portal Shopee
+# Jika Anda menggunakan ngrok, URL ini akan berubah setiap kali Anda menjalankannya.
+# Anda perlu memperbarui 'Test Redirect URL Domain' di portal Shopee setiap kali ngrok berubah.
+
+# LIVE
+# SHOPEE_SHOP_ID=1044365033
+SHOPEE_PARTNER_ID=2012237
+SHOPEE_PARTNER_KEY=shpk77544346706b645a534a5043686453626b70784379525a5950767a706456
+SHOPEE_BASE_URL=https://partner.shopeemobile.com
+# APP_REDIRECT_URL=http://localhost:3000/api/v1/auth/shopee-callback
+APP_REDIRECT_URL=http://localhost:5173/shopee-popup-callback
+# APP_REDIRECT_URL=https://cad10040099a.ngrok-free.app/shopee-callback
+
+# SHOPEE_SHOP_ID=225648318
+# SHOPEE_PARTNER_ID=1181787
+# SHOPEE_PARTNER_KEY=shpk4b464b78555a4e4255474e495378514878636972525748475851587a5565
+# SHOPEE_BASE_URL=https://openplatform.sandbox.test-stable.shopee.sg
+# APP_REDIRECT_URL=https://bd0a080aa8e8.ngrok-free.app/api/v1/auth/shopee-callback
+
+# SHOPEE_SHOP_ID=225649971
+# SHOPEE_PARTNER_ID=1181787
+# SHOPEE_PARTNER_KEY=shpk4b464b78555a4e4255474e495378514878636972525748475851587a5565
+# SHOPEE_BASE_URL=https://openplatform.sandbox.test-stable.shopee.sg
+# APP_REDIRECT_URL=https://bd0a080aa8e8.ngrok-free.app/api/v1/auth/shopee-callback
+
+# https://open.sandbox.test-stable.shopee.com/auth?auth_type=seller&partner_id=1181787&redirect_uri=https%3A%2F%2Fbd0a080aa8e8.ngrok-free.app/api/v1/auth/shopee-callback%2F&response_type=code
+
+# https://a24be444a5a1.ngrok-free.app/api/v1/auth/shopee-callback/?code=6c64484163567a5546744f416f71797a&shop_id=225649971
+
+# Port untuk aplikasi Express Anda
+PORT=3000
+
+# This was inserted by `prisma init`:
+# String koneksi DATABASE MySQL (tambahkan baris ini)
+DATABASE_URL="mysql://root:admin_mj7_123@localhost:3306/shopee_app"
+
+ACCESS_TOKEN_SECRET="Sqa4LPgHe5QO4cSAR0W6Q2ewnqtc05QPF9J8L/KifGw="
+REFRESH_TOKEN_SECRET="mNnx9X1UNxvClnPjjHxuFbFFIyuEqXf4LsCsq6AzRVo="

@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { getShopController } from '../controller/public/get-shops.controller';
-// import { createPrintLabelsController, downloadPrintLabelController, getChannelList, getPrintLabelController, } from '../controller/logistics.controller';
+import { getShopController } from '../controller/public/public.controller';
 
 const router = Router();
 

@@ -5,29 +5,30 @@ import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from "uuid";
 import z from 'zod';
-import { fetchCreateShippingDocument } from "../api/logistics/create-ship-doc.api";
-import { fetchDownloadShippingDocument } from "../api/logistics/download-shipping-socument";
-import { fetchGetAddressList } from '../api/logistics/get-address-list.api';
-import { fetchGetChannelList } from "../api/logistics/get-channel-list";
-import { getMassShippingParameter } from '../api/logistics/get-mass-shipping-parameter';
-import { fetchgetShippingDocumentResult } from "../api/logistics/get-shipping-document-result.api";
-import { fetchGetShippingParameter } from '../api/logistics/get-shipping-parameter';
-import { fetchShipOrder } from '../api/logistics/ship-order.api';
-import { SHOPEE_BASE_URL, SHOPEE_PARTNER_ID } from '../config';
-import { orderSnObjectSchema, packageNumberObjectSchema, zodOrderSnSchema, zodPackageNumberSchema, zodShippingDocumentTypeEnum, zodShopIdSchema, zodTrackingNumberSchema } from "../schema/zod";
-import { authenticatedShopeeRequest } from "../utils/authenticatedShopeeRequest";
-import { getFullApiPath } from "../utils/getFullApiPath";
-import { getTimestamp } from "../utils/getTimeStamp";
-import { generateSign } from "../utils/sign";
-import { fetchGetTrackingNumber } from '../api/logistics/get-tracking-number.api';
-import { fetchGetMassTrackingNumber } from '../api/logistics/get-mass-tracking-number';
-import { fetchGetShippingDocumentParam } from '../api/logistics/get-shipping-document-param';
+import { fetchCreateShippingDocument } from "../../api/logistics/create-ship-doc.api";
+import { fetchDownloadShippingDocument } from "../../api/logistics/download-shipping-socument";
+import { fetchGetAddressList } from '../../api/logistics/get-address-list.api';
+import { fetchGetChannelList } from "../../api/logistics/get-channel-list";
+import { getMassShippingParameter } from '../../api/logistics/get-mass-shipping-parameter';
+import { fetchGetMassTrackingNumber } from '../../api/logistics/get-mass-tracking-number';
+import { fetchGetShippingDocumentParam } from '../../api/logistics/get-shipping-document-param';
+import { fetchgetShippingDocumentResult } from "../../api/logistics/get-shipping-document-result.api";
+import { fetchGetShippingParameter } from '../../api/logistics/get-shipping-parameter';
+import { fetchGetTrackingNumber } from '../../api/logistics/get-tracking-number.api';
+import { fetchShipOrder } from '../../api/logistics/ship-order.api';
+import { fetchUpdateChannel } from '../../api/logistics/update-channel';
+import { SHOPEE_BASE_URL, SHOPEE_PARTNER_ID } from '../../config';
+import { orderSnObjectSchema, packageNumberObjectSchema, zodOrderSnSchema, zodPackageNumberSchema, zodShippingDocumentTypeEnum, zodQueryNumber, zodTrackingNumberSchema } from "../../schema/zod";
+import { authenticatedShopeeRequest } from "../../utils/authenticatedShopeeRequest";
+import { getFullApiPath } from "../../utils/getFullApiPath";
+import { getTimestamp } from "../../utils/getTimeStamp";
+import { generateSign } from "../../utils/sign";
 
 // /api/v2/logistics/get_channel_list✅ : GET
 export const getChannelList = async (req: Request, res: Response, next: NextFunction) => {
     const apiPath = '/api/v2/logistics/get_channel_list';
     const getChannelListSchema = z.object({
-        shop_id: zodShopIdSchema
+        shop_id: zodQueryNumber
     })
 
     const url = req.originalUrl
@@ -76,11 +77,63 @@ export const getChannelList = async (req: Request, res: Response, next: NextFunc
         next(error)
     }
 }
+
+// /api/v2/logistics/update_channel ✅ : POST
+export const updateChannel = async (req: Request, res: Response, next: NextFunction) => {
+    const apiPath = '/api/v2/logistics/update_channel';
+    const validation = z.object({
+        shop_id: zodQueryNumber,
+        logistics_channel_id: z.number(),
+        enabled: z.boolean(),
+        cod_enabled: z.boolean()
+    })
+
+    try {
+        const result = validation.safeParse(req.body)
+        if (!result.success) { return next(result.error) }
+
+        const { shop_id: shopId, cod_enabled, logistics_channel_id, enabled } = result.data
+        const timestamp = getTimestamp()
+        const responseData = await authenticatedShopeeRequest(shopId, async (accessToken) => {
+            const sign = generateSign({ urlPath: apiPath, timestamp, accessToken, shopId })
+            const fullApiPath = getFullApiPath(apiPath, timestamp, sign, shopId, accessToken)
+
+            return fetchUpdateChannel({
+                fullUrl: fullApiPath,
+                data: {
+                    cod_enabled,
+                    enabled,
+                    logistics_channel_id
+                }
+            })
+        })
+
+        if (responseData.error || responseData.message) {
+            console.error('Shopee API Error:', responseData.error);
+            return res.status(500).json({
+                message: responseData.message,
+                error: responseData.error
+            });
+        }
+
+        console.log({ responseData })
+
+        return res.json({
+            timestamp,
+            statusCode: 200,
+            data: responseData
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+
 // v2.logistics.get_address_list : GET ✅
 export const getAddressListController = async (req: Request, res: Response, next: NextFunction) => {
     const apiPath = '/api/v2/logistics/get_address_list';
     const reqQueryValidation = z.object({
-        shop_id: zodShopIdSchema,
+        shop_id: zodQueryNumber,
     })
 
     try {
@@ -96,6 +149,13 @@ export const getAddressListController = async (req: Request, res: Response, next
             const fullApiPath = getFullApiPath(apiPath, timestamp, sign, shopId, accessToken)
             return fetchGetAddressList({ fullApiPath })
         })
+            if (responseData?.error || responseData?.message) {
+            console.error('Shopee API Error:', responseData);
+            return res.status(500).json({
+                message: responseData.message,
+                error: responseData
+            });
+        }
 
         return res.json({
             timestamp,
@@ -110,7 +170,7 @@ export const getAddressListController = async (req: Request, res: Response, next
 export const getShippingParameterController = async (req: Request, res: Response, next: NextFunction) => {
     const apiPath = '/api/v2/logistics/get_shipping_parameter';
     const validation = orderSnObjectSchema.extend({
-        shop_id: zodShopIdSchema,
+        shop_id: zodQueryNumber,
     })
 
     try {
@@ -137,6 +197,13 @@ export const getShippingParameterController = async (req: Request, res: Response
                 }
             })
         })
+        if (responseData?.error || responseData?.message) {
+            console.error('Shopee API Error:', responseData);
+            return res.status(500).json({
+                message: responseData.message,
+                error: responseData
+            });
+        }
 
         return res.json({
             timestamp,
@@ -152,7 +219,7 @@ export const getMassShippingParameterController = async (req: Request, res: Resp
     const apiPath = '/api/v2/logistics/get_mass_shipping_parameter';
 
     const validation = z.object({
-        shop_id: zodShopIdSchema,
+        shop_id: zodQueryNumber,
         logistics_channel_id: z.number().optional(),
         product_location_id: z.string().optional(),
         package_list: z
@@ -197,7 +264,7 @@ export const getMassShippingParameterController = async (req: Request, res: Resp
 export const shipOrderController = async (req: Request, res: Response, next: NextFunction) => {
     const apiPath = '/api/v2/logistics/ship_order';
     const reqBodyValidation = orderSnObjectSchema.extend({
-        shop_id: zodShopIdSchema,
+        shop_id: zodQueryNumber,
         package_number: z.string(),
         pickup: z.object({
             address_id: z.number(),
@@ -253,7 +320,7 @@ export const shipOrderController = async (req: Request, res: Response, next: Nex
 export const getTrackingNumberController = async (req: Request, res: Response, next: NextFunction) => {
     const apiPath = '/api/v2/logistics/get_tracking_number';
     const validation = orderSnObjectSchema.extend({
-        shop_id: zodShopIdSchema,
+        shop_id: zodQueryNumber,
     })
 
     try {
@@ -280,6 +347,13 @@ export const getTrackingNumberController = async (req: Request, res: Response, n
                 }
             })
         })
+        if (responseData?.error || responseData?.message) {
+            console.error('Shopee API Error:', responseData);
+            return res.status(500).json({
+                message: responseData.message,
+                error: responseData
+            });
+        }
 
         return res.json({
             timestamp,
@@ -295,7 +369,7 @@ export const getMassTrackingNumberController = async (req: Request, res: Respons
     const apiPath = '/api/v2/logistics/get_mass_tracking_number';
 
     const validation = z.object({
-        shop_id: zodShopIdSchema,
+        shop_id: zodQueryNumber,
         package_list: z
             .array(packageNumberObjectSchema)
             .nonempty("package_list harus berisi minimal 1 package_number"),
@@ -340,7 +414,7 @@ export const getShippingDocumentParameter = async (req: Request, res: Response, 
     const apiPath = '/api/v2/logistics/get_shipping_document_parameter';
 
     const validation = z.object({
-        shop_id: zodShopIdSchema,
+        shop_id: zodQueryNumber,
         order_list: z.array(z.object({ ...orderSnObjectSchema.shape, ...packageNumberObjectSchema.shape }))
     })
 
@@ -395,7 +469,7 @@ export const createShippingDocumentController = async (req: Request, res: Respon
                         shipping_document_type: zodShippingDocumentTypeEnum,
                     }))
                 .nonempty("order_list harus berisi minimal 1 order"),
-            shop_id: zodShopIdSchema
+            shop_id: zodQueryNumber
         })
 
         const result = downloadDocSchema.safeParse(req.body);
@@ -443,7 +517,7 @@ export const getShippingDocumentResultController = async (req: Request, res: Res
             )
             .nonempty("order_list harus berisi minimal 1 order"),
         shipping_document_type: zodShippingDocumentTypeEnum,
-        shop_id: zodShopIdSchema
+        shop_id: zodQueryNumber
     });
 
     try {
@@ -488,7 +562,7 @@ export const downloadShippingDocumentController = async (req: Request, res: Resp
             .array(orderSnObjectSchema)
             .nonempty("order_list harus berisi minimal 1 order"),
         shipping_document_type: zodShippingDocumentTypeEnum,
-        shop_id: zodShopIdSchema
+        shop_id: zodQueryNumber
     });
 
     try {

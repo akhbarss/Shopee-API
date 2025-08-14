@@ -14,6 +14,7 @@ interface ShopeeRefreshResponse {
 
 
 export const refreshShopeeToken = async (shopId: number, currentRefreshToken: string): Promise<string> => {
+    console.log("🔥refreshShopeeToken- START")
     console.log(`Mencoba me-refresh token untuk shop_id: ${shopId}`);
 
     const path = '/api/v2/auth/access_token/get';
@@ -54,7 +55,7 @@ export const refreshShopeeToken = async (shopId: number, currentRefreshToken: st
         // Kembalikan access token yang baru
         return newAccessToken;
     } catch (error) {
-        console.error(`Gagal total me-refresh token untuk shop_id: ${shopId}`, error);
+        console.log(`refreshShopeeToken - END -Gagal total me-refresh token untuk shop_id: ${shopId}`);
         // Jika refresh token itu sendiri gagal, kita harus melempar error agar proses berhenti
         throw new Error('Gagal memperbarui token otorisasi Shopee.');
     }

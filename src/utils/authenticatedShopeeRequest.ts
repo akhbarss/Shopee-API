@@ -12,12 +12,15 @@ export const authenticatedShopeeRequest = async <T>(
     shopId: number,
     apiCall: (accessToken: string) => Promise<T>
 ): Promise<T> => {
+    console.log("🔥 ---------------  START - authenticatedShopeeRequest  --------------- 🔥")
     try {
         // Percobaan Pertama: Ambil token dari DB dan jalankan panggilan API
+        console.log("🔑 CEK TOKEN untuk shop id : ", shopId)
         const tokenInfo = await prisma.token.findUnique({ where: { shopId } });
         if (!tokenInfo) {
             throw new Error(`Token untuk shopId: ${shopId} tidak ditemukan.`);
         }
+        console.log("🔑 CEK TOKEN - TOKEN DITEMUKAN : ", tokenInfo.accessToken)
 
         console.log(`authenticatedShopeeRequest: Mencoba panggilan API untuk shopId: ${shopId} (Percobaan 1)`);
         return await apiCall(tokenInfo.accessToken);
@@ -25,7 +28,7 @@ export const authenticatedShopeeRequest = async <T>(
     } catch (error) {
         // Cek apakah ini error token kedaluwarsa
         if (axios.isAxiosError(error) && error.response?.data?.error === 'invalid_acceess_token') {
-            console.log(`Token kedaluwarsa terdeteksi untuk shopId: ${shopId}. Memulai refresh...`);
+            console.log(`❗❗❗ - invalid_acceess_token - Token kedaluwarsa terdeteksi untuk shopId: ${shopId}. Memulai refresh...`);
 
             // Dapatkan refresh token dari DB
             const tokenToRefresh = await prisma.token.findUnique({ where: { shopId } });
@@ -42,7 +45,8 @@ export const authenticatedShopeeRequest = async <T>(
         }
 
         // Jika error bukan karena token kedaluwarsa, lempar kembali agar ditangani oleh error handler utama
-        console.log("HandleError - throw error")
+        // console.log("HandleError - throw error")
+        console.log("🔥 --------------- END - authenticatedShopeeRequest ---------------  🔥")
         throw error;
     }
 };

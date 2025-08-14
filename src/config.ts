@@ -6,8 +6,8 @@ const SHOPEE_PARTNER_KEY = process.env.SHOPEE_PARTNER_KEY ?? "";
 const SHOPEE_BASE_URL = process.env.SHOPEE_BASE_URL ?? ""
 const APP_REDIRECT_URL = process.env.APP_REDIRECT_URL ?? ""; // URL callback aplikasi Anda
 
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET; // URL callback aplikasi Anda
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET; // URL callback aplikasi Anda
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET as string // URL callback aplikasi Anda
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET as string; // URL callback aplikasi Anda
 
 const config = {
     SHOPEE_PARTNER_ID, SHOPEE_PARTNER_KEY,

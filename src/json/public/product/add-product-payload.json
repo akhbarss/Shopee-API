@@ -1,0 +1,67 @@
+{
+    "original_price": 100000,
+    "description": "item description test description test",
+    "weight": 1.1,
+    "item_name": "READY TANAMAN SALAM",
+    "item_status": "NORMAL",
+    "dimension": {
+        "package_height": 11,
+        "package_length": 11,
+        "package_width": 11
+    },
+    "logistic_info": [
+        {
+            "enabled": true,
+            "logistic_id": 81017
+        }
+    ],
+    "attribute_list": [],
+    "category_id": 301176,
+    "image": {
+        "image_id_list": [
+            "sg-11134201-7r98o-mdef9xg819vnaf"
+        ]
+    },
+    "pre_order": {
+        "is_pre_order": true,
+        "days_to_ship": 3
+    },
+    "item_sku": "BIBIT-SALAM",
+    "condition": "NEW",
+    "wholesale": [
+    
+    ],
+    "video_upload_id": [],
+    "brand": {
+        "brand_id": 0,
+        "original_brand_name": "nike"
+    },
+    "item_dangerous": 0,
+    "tax_info": {
+        "ncm": "-",
+        "same_state_cfop": "-",
+        "diff_state_cfop": "-",
+        "csosn": "-",
+        "origin": "-",
+        "cest": "-",
+        "measure_unit": "-",
+        "invoice_option": "-",
+        "vat_rate": "-",
+        "hs_code": "-",
+        "tax_code": "-"
+    },
+    "complaint_policy": {
+        "warranty_time": "-",
+        "exclude_entrepreneur_warranty": true,
+        "complaint_address_id": 0,
+        "additional_information": "-"
+    },
+    "description_info": {},
+    "description_type": "",
+    "seller_stock": [
+        {
+            "location_id": "IDZ",
+            "stock": 999
+        }
+    ]
+}

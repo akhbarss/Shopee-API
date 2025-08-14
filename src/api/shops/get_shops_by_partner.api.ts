@@ -1,8 +1,17 @@
 import axios from 'axios';
 import { SHOPEE_BASE_URL, SHOPEE_PARTNER_ID } from '../../config';
-import { ResponseOrderShopee } from '../../types/data.type';
-import { ResGetShopsByPartner } from '../../types/response.type';
+import { BaseResponse, ResponseOrderShopee } from '../../types/data.type';
+// import { ResGetShopsByPartner } from '../../types/response.type';
 
+type ResGetShopsByPartner = {
+    authed_shop_list: {
+        "shop_id": 1044365033,
+        "expire_time": 1786660488,
+        "auth_time": 1755124489,
+        "region": "ID",
+        "sip_affi_shop_list": []
+    }[],
+} & BaseResponse
 
 /**
  * Fungsi ini bertanggung jawab HANYA untuk memanggil endpoint get_order_list Shopee.
@@ -24,7 +33,5 @@ export const fetchGetAllShops = async (
     };
 
     const response = await axios.get<ResGetShopsByPartner>(`${SHOPEE_BASE_URL}${urlPath}`, { params: apiParams });
-    console.log("################")
-    console.log({ data: response.data , authed_shop_list: response.data.authed_shop_list})
     return response.data;
 };

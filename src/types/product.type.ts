@@ -1,0 +1,8 @@
+export enum StatusProduct {
+    NORMAL = "NORMAL",
+    UNLIST = "UNLIST",
+    REVIEWING = "REVIEWING",
+    BANNED = "BANNED",
+    SELLER_DELETE = "SELLER_DELETE",
+    SHOPEE_DELETE = "SHOPEE_DELETE",
+}

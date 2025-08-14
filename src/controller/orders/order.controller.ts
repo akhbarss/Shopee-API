@@ -1,15 +1,16 @@
 import { NextFunction, Request, Response } from "express";
 import z from "zod";
-import { fetchGetOrderDetail } from "../api/order/get_order_detail.api";
-import { fetchGetOrderList } from "../api/order/get_order_list.api";
-import { fetchGetShipmentList } from "../api/order/get_shipment_list";
-import { fetchSearchPackageList } from "../api/order/search_package_list.api";
-import { zodShopIdSchema } from "../schema/zod";
-import { OrderStatus } from "../types/order.type";
-import { authenticatedShopeeRequest } from "../utils/authenticatedShopeeRequest";
-import { getFullApiPath } from "../utils/getFullApiPath";
-import { getTimestamp } from "../utils/getTimeStamp";
-import { generateSign } from "../utils/sign";
+import { fetchGetOrderDetail } from "../../api/order/get_order_detail.api";
+import { fetchGetOrderList } from "../../api/order/get_order_list.api";
+import { fetchGetShipmentList } from "../../api/order/get_shipment_list";
+import { fetchSearchPackageList } from "../../api/order/search_package_list.api";
+import { zodQueryNumber } from "../../schema/zod";
+import { OrderStatus } from "../../types/order.type";
+import { authenticatedShopeeRequest } from "../../utils/authenticatedShopeeRequest";
+import { getFullApiPath } from "../../utils/getFullApiPath";
+import { getTimestamp } from "../../utils/getTimeStamp";
+import { generateSign } from "../../utils/sign";
+import { prisma } from "../../prisma";
 
 const zodorderSnListSchema = z.string().nonempty()
 const orderStatusSchema = z.object({ status: z.enum(OrderStatus) });
@@ -18,7 +19,7 @@ const orderStatusSchema = z.object({ status: z.enum(OrderStatus) });
 export const getOrderListController = async (req: Request, res: Response, next: NextFunction) => {
     const apiPath = '/api/v2/order/get_order_list';
     const validation = orderStatusSchema.extend({
-        shop_id: zodShopIdSchema
+        shop_id: zodQueryNumber
     })
 
     try {
@@ -55,7 +56,7 @@ export const getOrderListController = async (req: Request, res: Response, next: 
 export const getOrderDetail = async (req: Request, res: Response, next: NextFunction) => {
     const urlPath = '/api/v2/order/get_order_detail';
     try {
-        const schem = z.object({ shop_id: zodShopIdSchema, order_sn_list: zodorderSnListSchema })
+        const schem = z.object({ shop_id: zodQueryNumber, order_sn_list: zodorderSnListSchema })
         const result = schem.safeParse(req.query)
         if (!result.success) {
             return next(result.error)
@@ -92,9 +93,10 @@ export const getOrderDetail = async (req: Request, res: Response, next: NextFunc
         next(error)
     }
 }
+
 export const getShipmentListController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const schem = z.object({ shop_id: zodShopIdSchema, page_size: zodShopIdSchema })
+        const schem = z.object({ shop_id: zodQueryNumber, page_size: zodQueryNumber })
         const result = schem.safeParse(req.query);
 
         if (!result.success) {
@@ -134,7 +136,7 @@ export const getSearchPackageListController = async (req: Request, res: Response
     const url = req.url
     console.log({ url })
     const schem = z.object({
-        shop_id: zodShopIdSchema,
+        shop_id: zodQueryNumber,
         filter: z.object({
             package_status: z.number().max(3),
             // product_location_ids
@@ -199,3 +201,97 @@ export const getSearchPackageListController = async (req: Request, res: Response
         next(error);
     }
 }
+
+export const getAllNewOrderDetail = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // 1. Ambil user dan shop yang terkait
+        const foundUser = await prisma.user.findUnique({
+            where: { id: req.user?.id },
+            select: {
+                shops: {
+                    select: {
+                        shopId: true,
+                        shopName: true,
+                    }
+                }
+            }
+        });
+
+        if (!foundUser) return res.status(400).json({ message: "User tidak ditemukan" });
+
+        const shopsAvailable = foundUser.shops;
+
+        if (!shopsAvailable || shopsAvailable.length === 0) {
+            return res.status(400).json({ message: "User tidak memiliki toko" });
+        }
+
+        // 2. Ambil status order dari query params (default PROCESSED)
+        const status = (req.query.status as string) || "PROCESSED";
+
+        // 3. Ambil order untuk semua shop secara paralel
+        const allOrders = await Promise.all(
+            shopsAvailable.map(shop =>
+                authenticatedShopeeRequest(shop.shopId, async access_token => {
+                    const apiPathGetOrderList = "/api/v2/order/get_order_list";
+                    const apiPathGetOrderDetail = '/api/v2/order/get_order_detail';
+                    const timestamp = getTimestamp();
+                    const signOrderList = generateSign({ urlPath: apiPathGetOrderList, timestamp, accessToken: access_token, shopId: shop.shopId });
+                    const signOrderDetail = generateSign({ urlPath: apiPathGetOrderDetail, timestamp, accessToken: access_token, shopId: shop.shopId });
+
+                    const ordersData = await fetchGetOrderList({
+                        access_token,
+                        shop_id: shop.shopId,
+                        sign: signOrderList,
+                    timestamp,
+                        status: OrderStatus.READY_TO_SHIP
+                    });
+
+                    // Ambil order_sn list
+                    const orderSnList = ordersData.response.order_list.map(o => o.order_sn).join(",");
+                    if (!orderSnList) return [];
+
+                    // Ambil detail order
+                    const orderDetailData = await fetchGetOrderDetail({
+                        // shopId: shop.shop_id,
+                        access_token,
+                        shop_id: shop.shopId,
+                        sign: signOrderDetail,
+                        timestamp,
+                        order_sn_list: orderSnList
+                    });
+
+                    // Format data
+                    return orderDetailData.response.order_list.map(order => {
+                        const { buyer_username, create_time, item_list, order_sn, order_status, pay_time, payment_method, package_list,
+                            total_amount, shipping_carrier, update_time, ship_by_date, pickup_done_time, region, currency,
+                            recipient_address: { city, district, full_address, name, phone, state, }, } = order;
+
+
+                        return {
+                            key: pay_time,
+                            shop_detail: shop,
+                            item_list: item_list.map((item) => ({ ...item, currency })),
+                            order_sn, order_status, pay_time, payment_method,
+                            buyer_username,
+                            create_time,
+                            total_amount, shipping_carrier, update_time, ship_by_date, pickup_done_time,
+                            city, district, full_address, name, phone, region, state, currency, package_list
+                        };
+                    });
+                })
+            )
+        );
+
+        // 4. Flatten array hasil fetch semua shop
+        const formattedData = allOrders.flat();
+
+        return res.json({
+            timestamp: getTimestamp(),
+            statusCode: 200,
+            data: formattedData
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
