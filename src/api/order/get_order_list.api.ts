@@ -21,7 +21,7 @@ type PayloadFetchGetOrderList = {
     shop_id: number;
     sign: string;
     timestamp: number;
-    status: OrderStatus
+    status?: OrderStatus
 
     time_to?: number | string;
     partner_id?: number;
@@ -48,7 +48,7 @@ export const fetchGetOrderList = async (
         time_from = timestamp - (14 * 24 * 60 * 60),
         time_range_field = "create_time",
         time_to = getTimestamp(),
-        response_optional_fields = "order_status",
+        // response_optional_fields = "order_status",
     }: PayloadFetchGetOrderList
 ): Promise<ResponseOrderShopee<ResGetOrderList>> => {
     const urlPath = '/api/v2/order/get_order_list';
@@ -64,7 +64,7 @@ export const fetchGetOrderList = async (
         time_range_field,
         page_size,
         time_from,
-        response_optional_fields,
+        // response_optional_fields,
     };
 
     const response = await axios.get<ResponseOrderShopee<ResGetOrderList>>(`${SHOPEE_BASE_URL}${urlPath}`, {

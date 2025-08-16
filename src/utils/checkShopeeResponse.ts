@@ -1,8 +1,8 @@
-export function checkShopeeResponse<T>(responseData: any): T {
-    if (responseData?.error || responseData?.message) {
-        const err = new Error(responseData.message || 'Shopee API Error');
+export function checkShopeeResponse<T>(responseData: T): T {
+    if ((responseData as any)?.error || (responseData as any)?.message) {
+        const err = new Error((responseData as any).message || 'Shopee API Error');
         (err as any).details = responseData;
         throw err;
     }
-    return responseData as T;
+    return responseData;
 }

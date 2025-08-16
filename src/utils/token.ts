@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { SHOPEE_BASE_URL, SHOPEE_PARTNER_ID } from "../config";
 import { generateSign } from "./sign";
 import { prisma } from '../prisma';
-import { ShopeeRefreshTokenResponse } from '../types/authorizartion';
+import { ShopeeRefreshTokenResponse } from '../types/authorizartion.type';
 import { CustomJwtPayload } from '../types/JwtPayload';
 
 // --- Penyimpanan Token Sementara (Dalam aplikasi nyata, ini di database) ---
@@ -95,17 +95,6 @@ async function getAccessToken(code: string, shopId: number, userId: number) {
                 }
             },
         });
-
-        // Kalau mau simpan juga shopName:
-        // await prisma.shop.upsert({
-        //     where: { shopId },
-        //     update: {  },
-        //     create: {
-        //         shopName: shopName,
-        //         shopId: shopId,
-        //         user: {}
-        //     },
-        // });
 
         console.log(`[GET_TOKEN] ✅ Berhasil untuk shop_id: ${shopId} (${shopName})`);
         return tokenData;

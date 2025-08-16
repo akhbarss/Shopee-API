@@ -28,6 +28,8 @@ export const getShopController = async (req: Request, res: Response) => {
         return shopsUser.some(userShop => userShop.shopId === shop.shop_id)
     })
 
+    console.log({filteredShops})
+
     res.json({
         timestamps: getTimestamp(),
         statusCode: 200,

@@ -14,6 +14,16 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET as string) as CustomJwtPayload;
     const id = decoded.id
     console.log({ id })
+    const shop = await prisma.user.findUnique({
+      where: {
+        id
+      },
+      select: {
+        shops: { select: { shopId: true } }
+      }
+    })
+
+    console.log(JSON.stringify(shop))
     // const foundUser = await prisma.token.findFirst({
     //   where: {
     //     shop: {

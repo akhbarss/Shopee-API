@@ -5,15 +5,15 @@ import { fetchGetOrderList } from "../../api/order/get_order_list.api";
 import { fetchGetShipmentList } from "../../api/order/get_shipment_list";
 import { fetchSearchPackageList } from "../../api/order/search_package_list.api";
 import { zodQueryNumber } from "../../schema/zod";
+import { getUserShops } from "../../service/order.service";
 import { OrderStatus } from "../../types/order.type";
 import { authenticatedShopeeRequest } from "../../utils/authenticatedShopeeRequest";
 import { getFullApiPath } from "../../utils/getFullApiPath";
 import { getTimestamp } from "../../utils/getTimeStamp";
 import { generateSign } from "../../utils/sign";
-import { prisma } from "../../prisma";
 
 const zodorderSnListSchema = z.string().nonempty()
-const orderStatusSchema = z.object({ status: z.enum(OrderStatus) });
+const orderStatusSchema = z.object({ status: z.enum(OrderStatus).optional() });
 
 // v2.order.get_order_list : GET ✅
 export const getOrderListController = async (req: Request, res: Response, next: NextFunction) => {
@@ -36,8 +36,7 @@ export const getOrderListController = async (req: Request, res: Response, next: 
                 shop_id: shopId,
                 sign,
                 timestamp,
-                status,
-
+                status: status,
             });
         });
 
@@ -94,7 +93,9 @@ export const getOrderDetail = async (req: Request, res: Response, next: NextFunc
     }
 }
 
+// v2.order.get_shipment_list : GET ✅
 export const getShipmentListController = async (req: Request, res: Response, next: NextFunction) => {
+    const urlPath = '/api/v2/order/get_shipment_list';
     try {
         const schem = z.object({ shop_id: zodQueryNumber, page_size: zodQueryNumber })
         const result = schem.safeParse(req.query);
@@ -105,7 +106,7 @@ export const getShipmentListController = async (req: Request, res: Response, nex
         const { shop_id, page_size } = result.data
 
         const responseData = await authenticatedShopeeRequest(shop_id, async (accessToken) => {
-            const urlPath = '/api/v2/order/get_shipment_list';
+
             const timestamp = getTimestamp()
             const sign = generateSign({ urlPath, timestamp: timestamp.toString(), accessToken, shopId: shop_id.toString() });
 
@@ -131,6 +132,7 @@ export const getShipmentListController = async (req: Request, res: Response, nex
         next(error);
     }
 }
+// v2.order.search_package_list : GET ✅
 export const getSearchPackageListController = async (req: Request, res: Response, next: NextFunction) => {
     const apiPath = '/api/v2/order/search_package_list';
     const url = req.url
@@ -202,33 +204,23 @@ export const getSearchPackageListController = async (req: Request, res: Response
     }
 }
 
-export const getAllNewOrderDetail = async (req: Request, res: Response, next: NextFunction) => {
+// APP
+export const GetAllNewOrder = async (req: Request, res: Response, next: NextFunction) => {
+    const validation = z.object({
+        status: z.enum(OrderStatus).optional()
+    })
     try {
-        // 1. Ambil user dan shop yang terkait
-        const foundUser = await prisma.user.findUnique({
-            where: { id: req.user?.id },
-            select: {
-                shops: {
-                    select: {
-                        shopId: true,
-                        shopName: true,
-                    }
-                }
-            }
-        });
 
-        if (!foundUser) return res.status(400).json({ message: "User tidak ditemukan" });
-
-        const shopsAvailable = foundUser.shops;
-
-        if (!shopsAvailable || shopsAvailable.length === 0) {
-            return res.status(400).json({ message: "User tidak memiliki toko" });
+        const result = validation.safeParse(req.query);
+        if (!result.success) {
+            return next(result.error)
         }
+        const { status } = result.data
 
-        // 2. Ambil status order dari query params (default PROCESSED)
-        const status = (req.query.status as string) || "PROCESSED";
+        const userId = req.user?.id
+        const shopsAvailable = await getUserShops(userId!)
 
-        // 3. Ambil order untuk semua shop secara paralel
+        // Ambil order untuk semua shop secara paralel
         const allOrders = await Promise.all(
             shopsAvailable.map(shop =>
                 authenticatedShopeeRequest(shop.shopId, async access_token => {
@@ -242,8 +234,8 @@ export const getAllNewOrderDetail = async (req: Request, res: Response, next: Ne
                         access_token,
                         shop_id: shop.shopId,
                         sign: signOrderList,
-                    timestamp,
-                        status: OrderStatus.READY_TO_SHIP
+                        timestamp,
+                        status
                     });
 
                     // Ambil order_sn list
@@ -264,11 +256,12 @@ export const getAllNewOrderDetail = async (req: Request, res: Response, next: Ne
                     return orderDetailData.response.order_list.map(order => {
                         const { buyer_username, create_time, item_list, order_sn, order_status, pay_time, payment_method, package_list,
                             total_amount, shipping_carrier, update_time, ship_by_date, pickup_done_time, region, currency,
-                            recipient_address: { city, district, full_address, name, phone, state, }, } = order;
+                            recipient_address: { city, district, full_address, name, phone, state, },
+                        } = order;
 
 
                         return {
-                            key: pay_time,
+                            key: `${buyer_username}${create_time}${order_sn}`,
                             shop_detail: shop,
                             item_list: item_list.map((item) => ({ ...item, currency })),
                             order_sn, order_status, pay_time, payment_method,

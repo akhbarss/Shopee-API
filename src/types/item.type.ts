@@ -1,4 +1,4 @@
-export enum StatusProduct {
+export enum StatusItem {
     NORMAL = "NORMAL",
     UNLIST = "UNLIST",
     REVIEWING = "REVIEWING",

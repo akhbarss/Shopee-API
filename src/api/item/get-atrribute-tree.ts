@@ -1,16 +1,10 @@
 import axios from 'axios';
-import { LogisticsChannel } from '../../types/logistics.type';
 import { BaseResponse } from '../../types/data.type';
 
 
 type ParamsGetAtributeTree = {
     fullApiPath: string
     params: {
-        access_token: string;
-        shop_id: number;
-        sign: string;
-        timestamp: number | string;
-        partner_id: number;
         category_id_list: string
     }
 }
@@ -71,7 +65,6 @@ type ResGetAtributeTree = {
  * @returns Data respons dari API Shopee.
  * 
  */
-
 
 export const fetchGetAtributeTree = async (
     payload: ParamsGetAtributeTree

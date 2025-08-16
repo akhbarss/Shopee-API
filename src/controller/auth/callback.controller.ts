@@ -19,11 +19,12 @@ export const callbackController = async (req: Request, res: Response) => {
         return res.send('<h2>Parameter "code" atau "shop_id" tidak ditemukan.</h2>');
     }
 
-    console.log(`[CALLBACK] Menerima code: ${code} dan shop_id: ${shop_id}`);
+    console.log(`[CALLBACK] Menerima code: ${code} dan shop_id: ${shop_id} dan user_id: ${user_id}`);
 
     // Panggil fungsi getAccessToken segera setelah menerima code
     const tokens = await getAccessToken(code, parseInt(shop_id), parseInt(user_id)); // Pastikan shop_id adalah integer
-    console.log("🔥" + tokens + user_id)
+    console.log("🔥" + JSON.stringify(tokens) + user_id)
+    console.log("🔥" + {tokens} +{ user_id})
     if (tokens) {
         return res.json({ message: "success" })
     } else {

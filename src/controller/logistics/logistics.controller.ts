@@ -149,7 +149,7 @@ export const getAddressListController = async (req: Request, res: Response, next
             const fullApiPath = getFullApiPath(apiPath, timestamp, sign, shopId, accessToken)
             return fetchGetAddressList({ fullApiPath })
         })
-            if (responseData?.error || responseData?.message) {
+        if (responseData?.error || responseData?.message) {
             console.error('Shopee API Error:', responseData);
             return res.status(500).json({
                 message: responseData.message,

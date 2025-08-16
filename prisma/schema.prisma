@@ -48,7 +48,7 @@ model Token {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  shop Shop @relation(fields: [shopId], references: [shopId])
+  shop Shop @relation(fields: [shopId], references: [shopId], onDelete: Cascade)
 }
 
 // Model untuk menyimpan token Shopee
